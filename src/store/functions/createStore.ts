@@ -1,7 +1,7 @@
-import { getOrCreateStore } from "./store";
-import type { CreateStoreProps } from "./@types";
+import type { CreateStoreProps } from "../@types";
+import getOrCreateStore from "./getOrCreateStore";
 
-export function createStore<Value>({
+export default function createStore<Value>({
   key,
   defaultValue,
   persistOptions,

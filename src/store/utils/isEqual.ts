@@ -1,4 +1,4 @@
-export function isEqual(first: unknown, second: unknown): boolean {
+export default function isEqual(first: unknown, second: unknown): boolean {
   if (Object.is(first, second)) {
     return true;
   }

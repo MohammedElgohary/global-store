@@ -1,42 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export type PersistOptions<Value = any> =
+export type PersistOptions<Value = Generic> =
+  | false
   | {
-      persist: false;
-    }
-  | {
-      persist: true;
       persistGetter: (key: string) => Value | Promise<Value>;
-      persistSetter: (
-        key: string,
-        previous: Value,
-        next: Value
-      ) => void | Promise<void>;
+      persistSetter: (key: string, newValue: Value) => void | Promise<void>;
     };
 
-export type Config<Value = any> = {
+export type Config<Value = Generic> = {
   name?: string;
   debug?: boolean;
   persistOptions?: PersistOptions<Value>;
   notifyDelay?: number;
 };
 
-export type StoreProps<Value = any> = {
+export type StoreProps<Value = Generic> = {
   key: string;
   defaultValue?: Value;
   persistOptions?: PersistOptions<Value>;
   notifyDelay?: number;
 };
 
-export type Store<Value = any> = {
-  key: string;
-  value: Value | ((previous: Value) => Value);
-  defaultValue: Value;
-  persistOptions?: PersistOptions<Value>;
-  load: (
-    loader: (key?: string, signal?: AbortSignal) => Promise<Value>
-  ) => void;
-  subscribe: (callback: () => void) => () => void;
-};
+export type Subscriber = () => void;
 
 export type SubscribeReturnType<Props> = Omit<
   Props,
@@ -46,14 +29,14 @@ export type SubscribeReturnType<Props> = Omit<
 /***
  * useStore Types
  */
-export type useStoreProps<Value, Selected = Value> = {
+export type useStoreProps<Value = Generic, Selected = Value> = {
   key: string;
   defaultValue?: Value;
   persistOptions?: PersistOptions<Value>;
   selector?: (value: Value) => Selected;
   notifyDelay?: number;
 };
-export type useStoreReturn<Value, Selected> = [
+export type useStoreReturn<Value = Generic, Selected> = [
   value: Selected,
   setter: (newValue: Value | ((previous: Value) => Value)) => void
 ];
@@ -61,9 +44,12 @@ export type useStoreReturn<Value, Selected> = [
 /***
  * createStore Types
  */
-export type CreateStoreProps<Value> = {
+export type CreateStoreProps<Value = Generic> = {
   key: string;
   defaultValue: Value;
   persistOptions?: PersistOptions<Value>;
   notifyDelay?: number;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Generic = any;

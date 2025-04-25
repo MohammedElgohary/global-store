@@ -1,9 +1,12 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { requestGetUsers } from "../../network";
 import { useStore } from "../../store";
 import { Action, ActionHandlers, State } from "./interface";
 import debounce from "debounce-promise";
 
+/**
+ * Initial state for users list
+ */
 const initialState: State = {
   users: [],
   page: 1,
@@ -13,6 +16,9 @@ const initialState: State = {
   error: null,
 };
 
+/**
+ * Users action handlers
+ */
 const actionHandlers: ActionHandlers = {
   "start-fetching": (state) => ({
     ...state,
@@ -42,6 +48,9 @@ const actionHandlers: ActionHandlers = {
 
 const debouncedGetUsers = debounce(requestGetUsers, 500);
 
+// List Abort Controller
+let controller;
+
 export function useUsers() {
   const [state, setState] = useStore<State>({
     key: "users",
@@ -55,8 +64,11 @@ export function useUsers() {
     setState((state) => actionHandlers[action](state, payload));
   }
 
-  useEffect(() => {
-    const controller = new AbortController();
+  /**
+   * First Load
+   */
+  useLayoutEffect(() => {
+    controller = new AbortController();
     const signal = controller.signal;
 
     requestGetUsers({ page: 1, pageSize: state.pageSize }, signal)
@@ -82,14 +94,20 @@ export function useUsers() {
     };
   }, []);
 
+  /**
+   * Loads specific page
+   */
   function loadPage(page: number) {
     if (page <= 0) {
       return;
     }
 
+    controller = new AbortController();
+    const signal = controller.signal;
+
     dispatch("start-fetching");
 
-    requestGetUsers({ page: page, pageSize: state.pageSize })
+    requestGetUsers({ page: page, pageSize: state.pageSize }, signal)
       .then(({ page, pageSize, users }) => {
         dispatch("replace-users", {
           users,
@@ -98,16 +116,26 @@ export function useUsers() {
         });
       })
       .catch((error) => {
+        if (signal.aborted || error.name === "AbortError") {
+          return;
+        }
+
         console.error(error);
 
         dispatch("fetch-error", { error });
       });
   }
 
+  /**
+   * Changes filters
+   */
   function changeFilters(filters: State["filters"]) {
     dispatch("change-filters", { filters });
 
-    debouncedGetUsers({ page: 1, pageSize: state.pageSize })
+    controller = new AbortController();
+    const signal = controller.signal;
+
+    debouncedGetUsers({ page: 1, pageSize: state.pageSize }, signal)
       .then(({ page, pageSize, users }) => {
         dispatch("replace-users", {
           users,
@@ -116,6 +144,10 @@ export function useUsers() {
         });
       })
       .catch((error) => {
+        if (signal.aborted || error.name === "AbortError") {
+          return;
+        }
+
         console.error(error);
 
         dispatch("fetch-error", { error });

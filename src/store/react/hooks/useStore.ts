@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useSyncExternalStore } from "react";
-import { getOrCreateStore } from "../store";
-import type { useStoreProps, useStoreReturn } from "../@types";
+import type { useStoreProps, useStoreReturn } from "../../@types";
+import { getOrCreateStore } from "../../functions";
 
 export default function useStore<Value, Selected = Value>({
   key,

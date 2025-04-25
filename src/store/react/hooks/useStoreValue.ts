@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from "react";
-import { getOrCreateStore } from "../store";
+import { getOrCreateStore } from "../../functions";
 
 export default function useStoreValue<Value>(
   key: string,

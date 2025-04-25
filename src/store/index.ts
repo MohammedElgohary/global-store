@@ -1,16 +1,8 @@
-// Store functions
-export {
-  batch,
-  getStoreValue,
-  setStoreValue,
-  configureStore,
-  subscribe,
-  storeValues as store,
-} from "./store";
-export { createStore } from "./createStore";
+// Functions
+export * from "./functions";
 
-// Hooks
-export * from "./hooks";
+// Hooks and HOCs
+export * from "./react";
 
 // Types
-export type { Store } from "./@types";
+export type { Store } from "./StoreClass";

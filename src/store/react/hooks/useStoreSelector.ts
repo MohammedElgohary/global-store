@@ -1,7 +1,7 @@
 import { useSyncExternalStore, useMemo } from "react";
-import { getOrCreateStore } from "../store";
+import { getOrCreateStore } from "../../functions";
 
-export default function useStoreSelector<Value = any, Selected = Value>(
+export default function useStoreSelector<Value, Selected = Value>(
   key: string,
   selector: (state: Value) => Selected
 ): Selected {
