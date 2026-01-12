@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import { useUsers } from "./useUsers";
+import { setStoreValue } from "../../store";
+import { User } from "../../domain/models";
+import { State } from "./interface";
 
 export default function UsersList() {
   const { changeFilters, error, filters, isLoading, loadPage, page, users } =
@@ -12,6 +15,15 @@ export default function UsersList() {
 
     console.error(error instanceof Error ? error.message : error);
   }, [error]);
+
+  function handleDeleteUser(id: number) {
+    setStoreValue<State>("users", (state) => {
+      return {
+        ...state,
+        users: state.users.filter((user: User) => user.id !== id),
+      };
+    });
+  }
 
   return (
     <div className="users">
@@ -43,7 +55,7 @@ export default function UsersList() {
             <div key={user.id} className="user">
               <div>{user.name}</div>
 
-              <button>remove</button>
+              <button onClick={() => handleDeleteUser(user.id)}>remove</button>
             </div>
           ))}
         </div>

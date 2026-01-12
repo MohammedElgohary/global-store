@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reactive DOM Binding Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--grey-100);
+        margin-bottom: 1rem;
+      }
+      .section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--grey-100);
+      }
+      .section:last-child {
+        border-bottom: none;
+      }
+      .section h2 {
+        margin-bottom: 1rem;
+        color: #333;
+      }
+      button {
+        padding: 0.75rem 1.5rem;
+        margin: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        border: 1px solid var(--grey-100);
+        border-radius: 4px;
+        background: white;
+      }
+      button:hover {
+        background: #f0f0f0;
+      }
+      .output {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: #f9f9f9;
+        border-radius: 4px;
+        font-family: monospace;
+        min-height: 1.5rem;
+      }
+      .highlight {
+        background: yellow;
+        padding: 0.25rem;
+      }
+      input {
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid var(--grey-100);
+        border-radius: 4px;
+        width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Reactive DOM Binding Demo</h1>
+      <p>
+        This demonstrates automatic DOM updates without manual
+        <code>document.getElementById()</code> code!
+      </p>
+
+      <div class="section">
+        <h2>1. bindText() - Automatic Text Updates</h2>
+        <p>Count: <span id="count-display"></span></p>
+        <button id="increment-count">Increment</button>
+        <p>
+          <strong>Code:</strong>
+          <code>bindText('#count-display', count);</code>
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>2. bindHTML() - Automatic HTML Updates</h2>
+        <div id="html-display" class="output"></div>
+        <button id="update-html">Update HTML</button>
+        <p>
+          <strong>Code:</strong>
+          <code>bindHTML('#html-display', () => `&lt;strong&gt;${count.value}&lt;/strong&gt;`);</code>
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>3. bindAttr() - Automatic Attribute Updates</h2>
+        <input id="name-input" type="text" placeholder="Enter name" />
+        <p>Input value attribute: <code id="attr-display"></code></p>
+        <button id="set-name">Set Name to "John"</button>
+        <p>
+          <strong>Code:</strong>
+          <code>bindAttr('#name-input', 'value', () => user.name);</code>
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>4. bindClass() - Automatic Class Toggles</h2>
+        <div id="class-demo" class="output">This div gets highlighted when count > 5</div>
+        <button id="toggle-class">Toggle Count</button>
+        <p>
+          <strong>Code:</strong>
+          <code>bindClass('#class-demo', 'highlight', () => count.value > 5);</code>
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>5. render() - Template Rendering</h2>
+        <div id="template-display" class="output"></div>
+        <button id="add-item">Add Item</button>
+        <button id="remove-item">Remove Item</button>
+        <p>
+          <strong>Code:</strong>
+          <code>render('#template-display', () => items.map(...).join(''));</code>
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>6. bindMultiple() - Multiple Bindings</h2>
+        <div>
+          <p>Name: <span id="user-name"></span></p>
+          <p>Age: <span id="user-age"></span></p>
+          <p>Email: <span id="user-email"></span></p>
+        </div>
+        <button id="update-user">Update User</button>
+        <p>
+          <strong>Code:</strong>
+          <code>bindMultiple([{ selector: '#user-name', type: 'text', ... }])</code>
+        </p>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        reactive,
+        bindText,
+        bindHTML,
+        bindAttr,
+        bindClass,
+        render,
+        bindMultiple,
+      } from "../index.js";
+
+      // 1. bindText
+      const count = reactive(0);
+      bindText("#count-display", count);
+
+      document.getElementById("increment-count").onclick = () => {
+        count.value++;
+      };
+
+      // 2. bindHTML
+      bindHTML("#html-display", () => {
+        return `<strong>Count is: ${count.value}</strong> <em>(HTML rendered)</em>`;
+      });
+
+      document.getElementById("update-html").onclick = () => {
+        count.value = Math.floor(Math.random() * 100);
+      };
+
+      // 3. bindAttr
+      const user = reactive({ name: "" });
+      bindAttr("#name-input", "value", () => user.name);
+      bindText("#attr-display", () => user.name || "(empty)");
+
+      document.getElementById("set-name").onclick = () => {
+        user.name = user.name === "John" ? "Jane" : "John";
+      };
+
+      // 4. bindClass
+      bindClass("#class-demo", "highlight", () => count.value > 5);
+
+      document.getElementById("toggle-class").onclick = () => {
+        count.value = count.value > 5 ? 0 : 10;
+      };
+
+      // 5. render (template)
+      const items = reactive({ list: ["Item 1", "Item 2"] });
+
+      render("#template-display", () => {
+        if (items.list.length === 0) {
+          return "<em>No items</em>";
+        }
+        return items.list
+          .map((item, i) => `<div>${i + 1}. ${item}</div>`)
+          .join("");
+      });
+
+      document.getElementById("add-item").onclick = () => {
+        items.list.push(`Item ${items.list.length + 1}`);
+      };
+
+      document.getElementById("remove-item").onclick = () => {
+        if (items.list.length > 0) {
+          items.list.pop();
+        }
+      };
+
+      // 6. bindMultiple
+      const userProfile = reactive({
+        name: "John Doe",
+        age: 30,
+        email: "john@example.com",
+      });
+
+      bindMultiple([
+        { selector: "#user-name", type: "text", target: "", source: () => userProfile.name },
+        { selector: "#user-age", type: "text", target: "", source: () => userProfile.age },
+        { selector: "#user-email", type: "text", target: "", source: () => userProfile.email },
+      ]);
+
+      document.getElementById("update-user").onclick = () => {
+        userProfile.name = userProfile.name === "John Doe" ? "Jane Smith" : "John Doe";
+        userProfile.age = userProfile.age === 30 ? 25 : 30;
+        userProfile.email = userProfile.email === "john@example.com" ? "jane@example.com" : "john@example.com";
+      };
+    </script>
+  </body>
+</html>

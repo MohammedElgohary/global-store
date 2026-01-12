@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Integration Example - New Store + Existing Store</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--grey-100);
+        margin-bottom: 1rem;
+      }
+      .section {
+        margin-bottom: 2rem;
+      }
+      .section h2 {
+        margin-bottom: 1rem;
+        color: #333;
+      }
+      .output {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: #f9f9f9;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+      button {
+        padding: 0.75rem 1.5rem;
+        margin: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        border: 1px solid var(--grey-100);
+        border-radius: 4px;
+        background: white;
+      }
+      button:hover {
+        background: #f0f0f0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Integration Example</h1>
+      <p>Demonstrates using the new reactive store in vanilla JavaScript</p>
+
+      <div class="section">
+        <h2>1. Simple Reactive Counter</h2>
+        <div id="counter-display" class="output">0</div>
+        <button id="increment">+</button>
+        <button id="decrement">-</button>
+      </div>
+
+      <div class="section">
+        <h2>2. Reactive Object (User Profile)</h2>
+        <div id="user-display" class="output"></div>
+        <button id="change-name">Change Name</button>
+        <button id="change-age">Change Age</button>
+      </div>
+
+      <div class="section">
+        <h2>3. Computed Values</h2>
+        <div id="computed-display" class="output"></div>
+        <button id="update-a">Update A</button>
+        <button id="update-b">Update B</button>
+      </div>
+
+      <div class="section">
+        <h2>4. Batch Updates</h2>
+        <div id="batch-display" class="output"></div>
+        <button id="batch-update">Batch Update (3 changes, 1 render)</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { reactive, computed, bindText, batch } from "../index.js";
+
+      // 1. Simple Counter
+      const count = reactive(0);
+
+      bindText("#counter-display", count);
+
+      document.getElementById("increment").onclick = () => {
+        count.value++;
+      };
+
+      document.getElementById("decrement").onclick = () => {
+        count.value--;
+      };
+
+      // 2. Reactive Object
+      const user = reactive({
+        name: "John",
+        age: 30,
+        email: "john@example.com",
+      });
+
+      bindText("#user-display", () => `
+Name: ${user.name}
+Age: ${user.age}
+Email: ${user.email}
+      `.trim());
+
+      document.getElementById("change-name").onclick = () => {
+        user.name = user.name === "John" ? "Jane" : "John";
+      };
+
+      document.getElementById("change-age").onclick = () => {
+        user.age++;
+      };
+
+      // 3. Computed Values
+      const a = reactive(1);
+      const b = reactive(2);
+
+      const sum = computed(() => a.value + b.value);
+      const product = computed(() => a.value * b.value);
+
+      bindText("#computed-display", () => `
+A: ${a.value}
+B: ${b.value}
+Sum: ${sum.value}
+Product: ${product.value}
+      `.trim());
+
+      document.getElementById("update-a").onclick = () => {
+        a.value = Math.floor(Math.random() * 10) + 1;
+      };
+
+      document.getElementById("update-b").onclick = () => {
+        b.value = Math.floor(Math.random() * 10) + 1;
+      };
+
+      // 4. Batch Updates
+      const x = reactive(0);
+      const y = reactive(0);
+      const z = reactive(0);
+      let renderCount = 0;
+
+      bindText("#batch-display", () => {
+        renderCount++;
+        return `
+X: ${x.value}
+Y: ${y.value}
+Z: ${z.value}
+Renders: ${renderCount}
+        `.trim();
+      });
+      
+      document.getElementById("batch-update").onclick = () => {
+        batch(() => {
+          x.value = Math.floor(Math.random() * 100);
+          y.value = Math.floor(Math.random() * 100);
+          z.value = Math.floor(Math.random() * 100);
+        });
+        // Effect runs only once, not three times!
+      };
+    </script>
+  </body>
+</html>

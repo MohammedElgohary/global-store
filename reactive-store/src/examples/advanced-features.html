@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Features - Reactive Store</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--grey-100);
+        margin-bottom: 1rem;
+      }
+      .section {
+        margin-bottom: 2rem;
+      }
+      .section h2 {
+        margin-bottom: 1rem;
+        color: #333;
+      }
+      button {
+        padding: 0.75rem 1.5rem;
+        margin: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        border: 1px solid var(--grey-100);
+        border-radius: 4px;
+        background: white;
+      }
+      button:hover {
+        background: #f0f0f0;
+      }
+      .output {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: #f9f9f9;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+      .error {
+        color: #ef4444;
+      }
+      .success {
+        color: #22c55e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Advanced Features Demo</h1>
+
+      <div class="section">
+        <h2>1. Readonly Reactive</h2>
+        <p>Create read-only reactive values that can't be modified.</p>
+        <div id="readonly-output" class="output"></div>
+        <button id="try-modify-readonly">Try to Modify (should fail)</button>
+      </div>
+
+      <div class="section">
+        <h2>2. Watch Function</h2>
+        <p>Watch specific reactive values for changes.</p>
+        <div id="watch-output" class="output"></div>
+        <button id="increment-watched">Increment Watched Value</button>
+      </div>
+
+      <div class="section">
+        <h2>3. Watch Property</h2>
+        <p>Watch a specific property of a reactive object.</p>
+        <div id="watch-property-output" class="output"></div>
+        <button id="change-name">Change Name</button>
+        <button id="change-age">Change Age</button>
+      </div>
+
+      <div class="section">
+        <h2>4. Debug Tools</h2>
+        <p>Track and debug reactive values.</p>
+        <div id="debug-output" class="output"></div>
+        <button id="enable-debug">Enable Debug</button>
+        <button id="log-tracked">Log Tracked Values</button>
+        <button id="clear-debug">Clear Debug</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        reactive,
+        readonly,
+        readonlyObject,
+        watch,
+        watchProperty,
+        setDebug,
+        trackReactive,
+        logTrackedReactive,
+        clearDebugTracking,
+        bindText,
+        bindHTML,
+      } from "../index.js";
+
+      // 1. Readonly Reactive
+      const count = reactive(0);
+      const readonlyCount = readonly(count);
+
+      bindText(
+        "#readonly-output",
+        () => `
+Readonly Count: ${readonlyCount.value}
+Original Count: ${count.value}
+      `
+      );
+
+      const readonlyMessage = reactive("");
+
+      document.getElementById("try-modify-readonly").onclick = () => {
+        try {
+          readonlyCount.value = 10; // This should fail silently
+          readonlyMessage.value =
+            '<span class="error">❌ Error: Should not be able to modify readonly value!</span>';
+        } catch (e) {
+          readonlyMessage.value =
+            '<span class="success">✅ Correctly prevented modification</span>';
+        }
+        // But we can modify the original
+        count.value++;
+      };
+
+      bindHTML("#readonly-output", () => {
+        const base = `
+Readonly Count: ${readonlyCount.value}
+Original Count: ${count.value}
+        `;
+        return base + readonlyMessage.value;
+      });
+
+      // 2. Watch Function
+      const watchedValue = reactive(0);
+      const watchLog = reactive < Array < string >> [];
+
+      watch(
+        watchedValue,
+        (newValue, oldValue) => {
+          watchLog.push(`Changed from ${oldValue} to ${newValue}`);
+        },
+        { immediate: true }
+      );
+
+      bindText("#watch-output", () => watchLog.join("\n"));
+
+      document.getElementById("increment-watched").onclick = () => {
+        watchedValue.value++;
+      };
+
+      // 3. Watch Property
+      const user = reactive({
+        name: "John",
+        age: 30,
+        email: "john@example.com",
+      });
+
+      const propertyWatchLog = reactive < Array < string >> [];
+
+      watchProperty(
+        user,
+        "name",
+        (newName, oldName) => {
+          propertyWatchLog.push(`Name changed: ${oldName} → ${newName}`);
+        },
+        { immediate: true }
+      );
+
+      bindText("#watch-property-output", () => propertyWatchLog.join("\n"));
+
+      document.getElementById("change-name").onclick = () => {
+        user.name = user.name === "John" ? "Jane" : "John";
+      };
+
+      document.getElementById("change-age").onclick = () => {
+        user.age++;
+      };
+
+      // 4. Debug Tools
+      const debugValue = reactive(42);
+      const debugLog = reactive < Array < string >> [];
+
+      document.getElementById("enable-debug").onclick = () => {
+        setDebug(true);
+        trackReactive(debugValue, "reactive");
+        debugValue.value = 100;
+        debugValue.value = 200;
+        debugLog.push("Debug enabled and value tracked");
+      };
+
+      document.getElementById("log-tracked").onclick = () => {
+        logTrackedReactive();
+        debugLog.push("Check console for tracked values");
+      };
+
+      document.getElementById("clear-debug").onclick = () => {
+        clearDebugTracking();
+        debugLog.push("Debug tracking cleared");
+      };
+
+      bindText("#debug-output", () => debugLog.join("\n"));
+    </script>
+  </body>
+</html>

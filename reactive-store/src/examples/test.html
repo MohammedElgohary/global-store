@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reactive Store Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test {
+      background: white;
+      padding: 1rem;
+      margin: 1rem 0;
+      border: 1px solid var(--grey-100);
+      border-radius: 4px;
+    }
+    .pass { color: #22c55e; }
+    .fail { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>Reactive Store System Test</h1>
+  <div id="results"></div>
+
+  <script type="module">
+    import { reactive, computed, effect, render } from "../index.js";
+
+    const testResults = reactive({
+      items: [],
+      testCount: 0,
+      passCount: 0,
+    });
+
+    function test(name, fn) {
+      testResults.testCount++;
+      try {
+        fn();
+        testResults.items.push({
+          number: testResults.testCount,
+          name,
+          passed: true,
+          error: null,
+        });
+        testResults.passCount++;
+      } catch (error) {
+        testResults.items.push({
+          number: testResults.testCount,
+          name,
+          passed: false,
+          error: error.message,
+        });
+      }
+    }
+
+    // Test 1: Reactive primitive
+    test('Reactive primitive get/set', () => {
+      const count = reactive(0);
+      if (count.value !== 0) throw new Error('Initial value wrong');
+      count.value = 5;
+      if (count.value !== 5) throw new Error('Set value wrong');
+    });
+
+    // Test 2: Subscription
+    test('Reactive subscription', () => {
+      const count = reactive(0);
+      let notified = false;
+      
+      count.subscribe(() => {
+        notified = true;
+      });
+      
+      count.value = 5;
+      if (!notified) throw new Error('Subscriber not notified');
+    });
+
+    // Test 3: Computed value
+    test('Computed value', () => {
+      const a = reactive(2);
+      const b = reactive(3);
+      
+      const sum = computed(() => a.value + b.value);
+      if (sum.value !== 5) throw new Error('Computed value wrong');
+      
+      a.value = 10;
+      if (sum.value !== 13) throw new Error('Computed value not updated');
+    });
+
+    // Test 4: Effect
+    test('Effect runs on change', () => {
+      const count = reactive(0);
+      let effectRan = 0;
+      
+      effect(() => {
+        effectRan++;
+        const _ = count.value; // Access to track dependency
+      });
+      
+      if (effectRan !== 1) throw new Error('Effect should run immediately');
+      
+      count.value = 5;
+      if (effectRan !== 2) throw new Error('Effect should run on change');
+    });
+
+    // Test 5: Reactive object
+    test('Reactive object', () => {
+      const user = reactive({
+        name: 'John',
+        age: 30
+      });
+      
+      if (user.name !== 'John') throw new Error('Object property access wrong');
+      
+      let notified = false;
+      effect(() => {
+        const _ = user.name; // Track dependency
+        notified = true;
+      });
+      
+      notified = false;
+      user.name = 'Jane';
+      if (!notified) throw new Error('Object change not detected');
+    });
+
+    // Test 6: Multiple subscribers
+    test('Multiple subscribers', () => {
+      const count = reactive(0);
+      let sub1 = 0;
+      let sub2 = 0;
+      
+      count.subscribe(() => sub1++);
+      count.subscribe(() => sub2++);
+      
+      count.value = 5;
+      if (sub1 !== 1 || sub2 !== 1) throw new Error('Not all subscribers notified');
+    });
+
+    // Display results using reactive binding
+    render('#results', () => {
+      const items = testResults.items
+        .map((item) => {
+          if (item.passed) {
+            return `<div class="test pass">✅ Test ${item.number}: ${item.name}</div>`;
+          } else {
+            return `<div class="test fail">❌ Test ${item.number}: ${item.name} - ${item.error}</div>`;
+          }
+        })
+        .join('');
+
+      const summary = `<div class="test" style="margin-top: 2rem; font-weight: bold;">
+        Results: ${testResults.passCount}/${testResults.testCount} tests passed
+      </div>`;
+
+      return items + summary;
+    });
+  </script>
+</body>
+</html>

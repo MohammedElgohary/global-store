@@ -6,6 +6,15 @@
   "scripts": {
     "dev": "vite --port 9000",
     "build": "tsc -b && vite build",
+    "build:reactive-store": "npm run build:reactive-store:vanilla:dev && npm run build:reactive-store:vanilla:min",
+    "build:reactive-store:dev": "vite build --config reactive-store/vite.config.reactive-store.ts",
+    "build:reactive-store:min": "vite build --config reactive-store/vite.config.reactive-store.min.ts",
+    "build:reactive-store:vanilla": "npm run build:reactive-store:vanilla:dev && npm run build:reactive-store:vanilla:min",
+    "build:reactive-store:vanilla:dev": "vite build --config reactive-store/vite.config.reactive-store.vanilla.ts",
+    "build:reactive-store:vanilla:min": "vite build --config reactive-store/vite.config.reactive-store.vanilla.min.ts",
+    "build:reactive-store:iife": "npm run build:reactive-store:iife:dev && npm run build:reactive-store:iife:min",
+    "build:reactive-store:iife:dev": "vite build --config reactive-store/vite.config.reactive-store.iife.ts",
+    "build:reactive-store:iife:min": "vite build --config reactive-store/vite.config.reactive-store.iife.min.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },

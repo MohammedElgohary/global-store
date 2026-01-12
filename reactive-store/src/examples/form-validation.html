@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reactive Form - Vanilla JS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid var(--grey-100);
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid var(--grey-100);
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input.error {
+      border-color: #ef4444;
+    }
+    .error-message {
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 1px solid var(--grey-100);
+      border-radius: 4px;
+      background: white;
+      margin-top: 1rem;
+    }
+    button:hover:not(:disabled) {
+      background: #f0f0f0;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .success {
+      color: #22c55e;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Reactive Form with Validation</h1>
+    
+    <form id="signup-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="your@email.com">
+        <div id="email-error" class="error-message"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="At least 8 characters">
+        <div id="password-error" class="error-message"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm-password">Confirm Password</label>
+        <input type="password" id="confirm-password" placeholder="Re-enter password">
+        <div id="confirm-error" class="error-message"></div>
+      </div>
+
+      <button type="submit" id="submit-btn" disabled>Sign Up</button>
+      <div id="success-message" class="success"></div>
+    </form>
+  </div>
+
+  <script type="module">
+    import { reactive, computed, bindText, bindAttr, bindClass } from "../index.js";
+
+    // Create reactive form state
+    const form = reactive({
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+
+    // Computed validation
+    const emailValid = computed(() => {
+      const email = form.email;
+      return email.includes('@') && email.includes('.');
+    });
+
+    const passwordValid = computed(() => {
+      return form.password.length >= 8;
+    });
+
+    const passwordsMatch = computed(() => {
+      return form.password === form.confirmPassword && form.password !== '';
+    });
+
+    const isFormValid = computed(() => {
+      return emailValid.value && passwordValid.value && passwordsMatch.value;
+    });
+
+    // Bind inputs to reactive state
+    document.getElementById('email').addEventListener('input', (e) => {
+      form.email = e.target.value;
+    });
+
+    document.getElementById('password').addEventListener('input', (e) => {
+      form.password = e.target.value;
+    });
+
+    document.getElementById('confirm-password').addEventListener('input', (e) => {
+      form.confirmPassword = e.target.value;
+    });
+
+    // Auto-update UI based on reactive state using DOM bindings
+    // Email validation
+    bindClass('#email', 'error', () => form.email && !emailValid.value);
+    bindText('#email-error', () => 
+      form.email && !emailValid.value ? 'Please enter a valid email address' : ''
+    );
+
+    // Password validation
+    bindClass('#password', 'error', () => form.password && !passwordValid.value);
+    bindText('#password-error', () => 
+      form.password && !passwordValid.value ? 'Password must be at least 8 characters' : ''
+    );
+
+    // Confirm password validation
+    bindClass('#confirm-password', 'error', () => form.confirmPassword && !passwordsMatch.value);
+    bindText('#confirm-error', () => 
+      form.confirmPassword && !passwordsMatch.value ? 'Passwords do not match' : ''
+    );
+
+    // Submit button state
+    bindAttr('#submit-btn', 'disabled', () => !isFormValid.value);
+
+    // Success message binding
+    const successMessage = reactive('');
+
+    // Form submission
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      if (isFormValid.value) {
+        successMessage.value = `Success! Welcome ${form.email}`;
+        
+        // Reset form
+        form.email = '';
+        form.password = '';
+        form.confirmPassword = '';
+      }
+    });
+
+    bindText('#success-message', successMessage);
+  </script>
+</body>
+</html>

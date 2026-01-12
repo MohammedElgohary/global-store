@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reactive Shopping Cart - Vanilla JS</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--grey-100);
+        margin-bottom: 1rem;
+      }
+      .product {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--grey-100);
+      }
+      .product:last-child {
+        border-bottom: none;
+      }
+      .product-info {
+        flex: 1;
+      }
+      .product-name {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+      }
+      .product-price {
+        color: #666;
+      }
+      .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        cursor: pointer;
+        border: 1px solid var(--grey-100);
+        border-radius: 4px;
+        background: white;
+      }
+      button:hover {
+        background: #f0f0f0;
+      }
+      .quantity {
+        font-weight: bold;
+        min-width: 2rem;
+        text-align: center;
+      }
+      .summary {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.25rem;
+        font-weight: bold;
+        padding-top: 1rem;
+        border-top: 2px solid var(--grey-100);
+      }
+      .empty-cart {
+        text-align: center;
+        color: #666;
+        padding: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Shopping Cart</h1>
+      <div id="cart-items"></div>
+      <div id="cart-summary"></div>
+    </div>
+
+    <script type="module">
+      import { reactive, computed, render } from "../index.js";
+
+      // Create reactive cart
+      const cart = reactive({
+        items: [
+          { id: 1, name: "Laptop", price: 999, quantity: 1 },
+          { id: 2, name: "Mouse", price: 25, quantity: 2 },
+          { id: 3, name: "Keyboard", price: 75, quantity: 1 },
+        ],
+      });
+
+      // Computed values
+      const subtotal = computed(() => {
+        return cart.items.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+      });
+
+      const tax = computed(() => {
+        return subtotal.value * 0.1; // 10% tax
+      });
+
+      const total = computed(() => {
+        return subtotal.value + tax.value;
+      });
+
+      const itemCount = computed(() => {
+        return cart.items.reduce((sum, item) => sum + item.quantity, 0);
+      });
+
+      // Update quantity
+      function updateQuantity(id, delta) {
+        const item = cart.items.find((i) => i.id === id);
+        if (item) {
+          const newQuantity = item.quantity + delta;
+          if (newQuantity > 0) {
+            item.quantity = newQuantity;
+          } else {
+            // Remove item if quantity reaches 0
+            cart.items = cart.items.filter((i) => i.id !== id);
+          }
+        }
+      }
+
+      // Remove item
+      function removeItem(id) {
+        cart.items = cart.items.filter((i) => i.id !== id);
+      }
+
+      // Render cart items using reactive binding
+      render("#cart-items", () => {
+        if (cart.items.length === 0) {
+          return '<div class="empty-cart">Your cart is empty</div>';
+        }
+
+        return cart.items
+          .map(
+            (item) => `
+        <div class="product">
+          <div class="product-info">
+            <div class="product-name">${item.name}</div>
+            <div class="product-price">$${item.price.toFixed(2)} each</div>
+          </div>
+          <div class="quantity-controls">
+            <button onclick="window.updateQuantity(${item.id}, -1)">-</button>
+            <span class="quantity">${item.quantity}</span>
+            <button onclick="window.updateQuantity(${item.id}, 1)">+</button>
+            <button onclick="window.removeItem(${
+              item.id
+            })" style="margin-left: 1rem; background: #ef4444; color: white;">Remove</button>
+          </div>
+        </div>
+      `
+          )
+          .join("");
+      });
+
+      // Render summary using reactive binding
+      render("#cart-summary", () => {
+        return `
+        <div class="summary">
+          <div>
+            <div>Items: ${itemCount.value}</div>
+            <div>Subtotal: $${subtotal.value.toFixed(2)}</div>
+            <div>Tax (10%): $${tax.value.toFixed(2)}</div>
+          </div>
+          <div style="font-size: 1.5rem; color: #22c55e;">
+            Total: $${total.value.toFixed(2)}
+          </div>
+        </div>
+      `;
+      });
+
+      // Expose functions globally
+      window.updateQuantity = updateQuantity;
+      window.removeItem = removeItem;
+    </script>
+  </body>
+</html>

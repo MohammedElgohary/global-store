@@ -63,7 +63,6 @@ export class Store<Value = Generic> {
       typeof newValue === "function"
         ? (newValue as (prev: Value) => Value)(current)
         : newValue;
-
     if (Object.is(current, next)) {
       return;
     }

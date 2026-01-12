@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Reactive Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid var(--grey-100);
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      margin: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 1px solid var(--grey-100);
+      border-radius: 4px;
+      background: white;
+    }
+    button:hover {
+      background: #f0f0f0;
+    }
+    .output {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Simple Reactive Example</h1>
+    
+    <p>This demonstrates the basic reactive pattern:</p>
+    <ol>
+      <li>Create reactive values</li>
+      <li>Use effects to update the DOM</li>
+      <li>Change values and watch the DOM update automatically!</li>
+    </ol>
+
+    <div>
+      <button onclick="increment()">Increment</button>
+      <button onclick="decrement()">Decrement</button>
+    </div>
+
+    <div class="output" id="output"></div>
+  </div>
+
+  <script type="module">
+    // Step 1: Import reactive functions
+    import { reactive, bindHTML } from "../index.js";
+
+    // Step 2: Create reactive state
+    const count = reactive(0);
+
+    // Step 3: Use bindHTML to automatically update DOM
+    bindHTML('#output', () => {
+      return `
+        <strong>Count:</strong> ${count.value}<br>
+        <strong>Double:</strong> ${count.value * 2}<br>
+        <strong>Status:</strong> ${count.value > 0 ? 'Positive' : count.value < 0 ? 'Negative' : 'Zero'}
+      `;
+    });
+
+    // Step 4: Define functions that update reactive state
+    window.increment = () => {
+      count.value++;
+    };
+
+    window.decrement = () => {
+      count.value--;
+    };
+
+    // The DOM will update automatically when count.value changes!
+    console.log('Try clicking the buttons - the DOM updates automatically!');
+  </script>
+</body>
+</html>
